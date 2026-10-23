@@ -4,15 +4,15 @@
 
 import pathlib
 import random
+
 import pytest
 
 from tests.base import RemoteGefUnitTestGeneric
-
 from tests.utils import (
+    GDBSERVER_DEFAULT_HOST,
     debug_target,
     gdbserver_session,
     qemuuser_session,
-    GDBSERVER_DEFAULT_HOST,
 )
 
 

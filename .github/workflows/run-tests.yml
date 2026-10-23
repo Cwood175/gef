@@ -1,24 +1,21 @@
 name: CI Test for GEF
 
-on:
-  push:
-    branches:
-      - main
-
-  pull_request:
-    branches:
-      - main
-
+on: push
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
-          - ubuntu-20.04
-    name: "Run Unit tests on ${{ matrix.os }}"
+        - ubuntu-22.04
+        - ubuntu-24.04
+    name: Run Unit tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    services:
+      pypi_wayback:
+        image: ghcr.io/waleko/pypi-wayback
+        ports:
+        - 8629:8080
     defaults:
       run:
         shell: bash
@@ -47,11 +44,8 @@ jobs:
       with:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         path: ${{ env.GEF_CI_CACHE_DIR }}
-        restore-keys:
-          ${{ runner.os }}-pip-${{ env.cache-name }}-
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-${{ env.cache-name }}-
-          ${{ runner.os }}-
+        restore-keys: ${{ runner.os }}-pip-${{ env.cache-name }}- ${{ runner.os 
+          }}-pip- ${{ runner.os }}-${{ env.cache-name }}- ${{ runner.os }}-
 
     - name: Install Python Requirements
       run: |
@@ -67,3 +61,7 @@ jobs:
       run: |
         make -C tests/binaries -j ${{ env.GEF_CI_NB_CPU }}
         python${{ env.PY_VER }} -m pytest --forked -n ${{ env.GEF_CI_NB_CPU }} -v -k "not benchmark" tests/
+
+env:
+  PIP_INDEX_URL: http://localhost:8629/2024-01-20
+  UV_INDEX_URL: http://localhost:8629/2024-01-20
