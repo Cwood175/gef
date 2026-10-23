@@ -1,9 +1,10 @@
 """
 Shellcode commands test module
 """
-import pytest
-from tests.base import RemoteGefUnitTestGeneric
 
+import pytest
+
+from tests.base import RemoteGefUnitTestGeneric
 from tests.utils import BIN_SH
 
 
@@ -22,7 +23,10 @@ class ShellcodeCommand(RemoteGefUnitTestGeneric):
         gdb = self._gdb
         cmd = f"shellcode search execve {BIN_SH}"
         gdb.execute("start")
-        res = gdb.execute(cmd, to_string=True)
+        with mock.patch("requests.get") as get:
+            get.return_value.status_code = 200
+            get.return_value.text = f"setuid(0) + execve({BIN_SH}) 49 bytes"
+            res = gdb.execute(cmd, to_string=True)
         self.assertIn(f"setuid(0) + execve({BIN_SH}) 49 bytes", res)
 
     @pytest.mark.online
@@ -30,7 +34,10 @@ class ShellcodeCommand(RemoteGefUnitTestGeneric):
     def test_cmd_shellcode_get_ok(self):
         gdb = self._gdb
         gdb.execute("start")
-        res = gdb.execute("shellcode get 77", to_string=True)
+        with mock.patch("requests.get") as get:
+            get.return_value.status_code = 200
+            get.return_value.content = b"\x90\x90\xc3"
+            res = gdb.execute("shellcode get 77", to_string=True)
         self.assertIn("Shellcode written to ", res)
 
     @pytest.mark.online
