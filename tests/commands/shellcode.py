@@ -1,9 +1,10 @@
 """
 Shellcode commands test module
 """
-import pytest
-from tests.base import RemoteGefUnitTestGeneric
 
+import pytest
+
+from tests.base import RemoteGefUnitTestGeneric
 from tests.utils import BIN_SH
 
 
@@ -23,6 +24,8 @@ class ShellcodeCommand(RemoteGefUnitTestGeneric):
         cmd = f"shellcode search execve {BIN_SH}"
         gdb.execute("start")
         res = gdb.execute(cmd, to_string=True)
+        if "Could not query search page" in res:
+            pytest.skip("shellcode search service is unavailable")
         self.assertIn(f"setuid(0) + execve({BIN_SH}) 49 bytes", res)
 
     @pytest.mark.online
@@ -31,6 +34,8 @@ class ShellcodeCommand(RemoteGefUnitTestGeneric):
         gdb = self._gdb
         gdb.execute("start")
         res = gdb.execute("shellcode get 77", to_string=True)
+        if "Failed to fetch shellcode" in res:
+            pytest.skip("shellcode fetching service is unavailable")
         self.assertIn("Shellcode written to ", res)
 
     @pytest.mark.online
